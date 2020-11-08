@@ -38,6 +38,11 @@ To compile this plugin, you need the following includes:
 1. [GOKZ](https://bitbucket.org/kztimerglobalteam/gokz/src/master/)
 2. [AutoExecConfig](https://github.com/Impact123/AutoExecConfig)
 
+## Changelog
+
+- **1.0.0** 8.11.2020  
+  Initial release.
+
 ## Credits
 
 The code for getting the average time is copied from the
