@@ -20,6 +20,26 @@ public Plugin myinfo =
 
 Database gH_DB = null;
 
+public void OnPluginStart()
+{
+    CreateConVars();
+}
+
+ConVar gCV_dyntim_timelimit_min;
+ConVar gCV_dyntim_timelimit_max;
+
+void CreateConVars()
+{
+    AutoExecConfig_SetFile("plugins.dyntime", "sourcemod");
+    AutoExecConfig_SetCreateFile(true);
+
+    gCV_dyntim_timelimit_min = AutoExecConfig_CreateConVar("dyntim_timelimit_min", "15", "If calculated timelimit is smaller than this, use this value instead. (Minutes)", _, true, 0.0);
+    gCV_dyntim_timelimit_max = AutoExecConfig_CreateConVar("dyntim_timelimit_max", "180", "If calculated timelimit is bigger than this, use this value instead. (Minutes)", _, true, 0.0);
+
+    AutoExecConfig_ExecuteFile();
+    AutoExecConfig_CleanFile();
+}
+
 public void OnAllPluginsLoaded()
 {
     gH_DB = GOKZ_DB_GetDatabase();
@@ -88,8 +108,10 @@ void DB_TxnSuccess_SetDynamicTimelimit(Handle db, DataPack data, int numQueries,
     int newTimeMinutes = RoundToNearest(newTime/60.0);
 
     // Make sure the values are not too high or low.
-    if (newTimeMinutes < 15) newTimeMinutes = 15; // TODO: Read from Config.
-    if (newTimeMinutes > 180) newTimeMinutes = 180; // TODO: Read from Config.
+    int min = gCV_dyntim_timelimit_min.IntValue;
+    int max = gCV_dyntim_timelimit_max.IntValue;
+    newTimeMinutes = newTimeMinutes < min ? min : newTimeMinutes;
+    newTimeMinutes = newTimeMinutes > max ? max : newTimeMinutes;
 
     // Roundtime cannot be over 60 minutes.
     int roundTime = newTimeMinutes > 60 ? 60 : newTimeMinutes;
