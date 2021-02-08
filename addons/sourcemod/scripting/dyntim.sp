@@ -98,11 +98,14 @@ void DB_TxnSuccess_SetDynamicTimelimit(Handle db, DataPack data, int numQueries,
     int newTime = 0;
 
     // Do some magic scaling for lower numbers:
-    if (averageTime <= 60) newTime = averageTime * 20;
-    else if (averageTime <= 120) newTime = averageTime * 12;
-    else if (averageTime <= 180) newTime = averageTime * 10;
-    else if (averageTime <= 300) newTime = averageTime * 7;
-    else if (averageTime <= 600) newTime = averageTime * 4;
+    if (averageTime <= 60) newTime = averageTime * 16;
+    else if (averageTime <= 90) newTime = averageTime * 12;
+    else if (averageTime <= 120) newTime = averageTime * 10;
+    else if (averageTime <= 150) newTime = averageTime * 9;
+    else if (averageTime <= 180) newTime = averageTime * 7;
+    else if (averageTime <= 300) newTime = averageTime * 6;
+    else if (averageTime <= 360) newTime = averageTime * 5;
+    else if (averageTime <= 420) newTime = averageTime * 4;
     else newTime = averageTime * 3;
 
     int newTimeMinutes = RoundToNearest(newTime/60.0);
