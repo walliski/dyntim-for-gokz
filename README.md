@@ -29,6 +29,11 @@ dyntim_timelimit_min "15"
 // Default: "180"
 // Minimum: "0.000000"
 dyntim_timelimit_max "180"
+
+// Multiply the resulting timelimit with this, before checking min and max values.
+// -
+// Default: "1.0"
+dyntim_multiplier "1.0"
 ```
 
 ## Compiling
@@ -39,6 +44,10 @@ To compile this plugin, you need the following includes:
 2. [AutoExecConfig](https://github.com/Impact123/AutoExecConfig)
 
 ## Changelog
+
+- **1.1.0** 8.2.2021  
+  - Added multiplier cvar so you can scale the resulting timelimit, in case you feel its consistently too high or low.
+  - Lowered the resulting timelimits, and made the scaling a bit smoother, for shorter maps.
 
 - **1.0.0** 8.11.2020  
   Initial release.
