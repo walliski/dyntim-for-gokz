@@ -27,6 +27,7 @@ public void OnPluginStart()
 
 ConVar gCV_dyntim_timelimit_min;
 ConVar gCV_dyntim_timelimit_max;
+ConVar gCV_dyntim_multiplier;
 
 void CreateConVars()
 {
@@ -35,6 +36,7 @@ void CreateConVars()
 
     gCV_dyntim_timelimit_min = AutoExecConfig_CreateConVar("dyntim_timelimit_min", "15", "If calculated timelimit is smaller than this, use this value instead. (Minutes)", _, true, 0.0);
     gCV_dyntim_timelimit_max = AutoExecConfig_CreateConVar("dyntim_timelimit_max", "180", "If calculated timelimit is bigger than this, use this value instead. (Minutes)", _, true, 0.0);
+    gCV_dyntim_multiplier = AutoExecConfig_CreateConVar("dyntim_multiplier", "1.0", "Multiply the resulting timelimit with this, before checking min and max values.");
 
     AutoExecConfig_ExecuteFile();
     AutoExecConfig_CleanFile();
@@ -108,7 +110,7 @@ void DB_TxnSuccess_SetDynamicTimelimit(Handle db, DataPack data, int numQueries,
     else if (averageTime <= 420) newTime = averageTime * 4;
     else newTime = averageTime * 3;
 
-    int newTimeMinutes = RoundToNearest(newTime/60.0);
+    int newTimeMinutes = RoundToNearest((newTime * gCV_dyntim_multiplier.FloatValue)/60.0);
 
     // Make sure the values are not too high or low.
     int min = gCV_dyntim_timelimit_min.IntValue;
