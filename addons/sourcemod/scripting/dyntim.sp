@@ -26,6 +26,10 @@ ConVar gCV_dyntim_multiplier;
 public void OnPluginStart()
 {
     CreateConVars();
+
+    // Unlock roundtime's 60 minutes upper cap.
+    SetConVarBounds(FindConVar("mp_roundtime"), ConVarBound_Upper, true, gCV_dyntim_timelimit_max.FloatValue);
+
     HookConVarChange(FindConVar("mp_timelimit"), OnTimeLimitChanged);
 }
 
@@ -125,9 +129,6 @@ void DB_TxnSuccess_SetDynamicTimelimit(Handle db, DataPack data, int numQueries,
     int max = gCV_dyntim_timelimit_max.IntValue;
     newTimeMinutes = newTimeMinutes < min ? min : newTimeMinutes;
     newTimeMinutes = newTimeMinutes > max ? max : newTimeMinutes;
-
-    // Unlock roundtime's 60 minutes upper cap.
-    SetConVarBounds(FindConVar("mp_roundtime"), ConVarBound_Upper, true, gCV_dyntim_timelimit_max.FloatValue);
 
     char buffer[32];
     Format(buffer, sizeof(buffer), "mp_timelimit %i", newTimeMinutes);
