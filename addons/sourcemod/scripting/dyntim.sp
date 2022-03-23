@@ -19,15 +19,23 @@ public Plugin myinfo =
 };
 
 Database gH_DB = null;
+ConVar gCV_dyntim_timelimit_min;
+ConVar gCV_dyntim_timelimit_max;
+ConVar gCV_dyntim_multiplier;
 
 public void OnPluginStart()
 {
     CreateConVars();
+    HookConVarChange(FindConVar("mp_timelimit"), OnTimeLimitChanged);
 }
 
-ConVar gCV_dyntim_timelimit_min;
-ConVar gCV_dyntim_timelimit_max;
-ConVar gCV_dyntim_multiplier;
+public void OnTimeLimitChanged(ConVar timeLimit, const char[] oldValue, const char[] newValue)
+{
+    int newRoundTime = RoundToNearest(StringToFloat(newValue) * 60);
+    GameRules_SetProp("m_iRoundTime", newRoundTime);
+
+    FindConVar("mp_roundtime").SetFloat(timeLimit.FloatValue);
+}
 
 void CreateConVars()
 {
@@ -118,15 +126,16 @@ void DB_TxnSuccess_SetDynamicTimelimit(Handle db, DataPack data, int numQueries,
     newTimeMinutes = newTimeMinutes < min ? min : newTimeMinutes;
     newTimeMinutes = newTimeMinutes > max ? max : newTimeMinutes;
 
-    // Roundtime cannot be over 60 minutes.
-    int roundTime = newTimeMinutes > 60 ? 60 : newTimeMinutes;
+    // Unlock roundtime's 60 minutes upper cap.
+    SetConVarBounds(FindConVar("mp_roundtime"), ConVarBound_Upper, true, gCV_dyntim_timelimit_max.FloatValue);
 
     char buffer[32];
     Format(buffer, sizeof(buffer), "mp_timelimit %i", newTimeMinutes);
     ServerCommand(buffer);
 
-    Format(buffer, sizeof(buffer), "mp_roundtime %i", roundTime);
+    Format(buffer, sizeof(buffer), "mp_roundtime %i", newTimeMinutes);
     ServerCommand(buffer);
+
     ServerCommand("mp_restartgame 1"); // Need to restart for Roundtime to take place.
 }
 
