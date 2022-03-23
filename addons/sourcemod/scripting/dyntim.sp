@@ -22,6 +22,7 @@ public Plugin myinfo =
 Database gH_DB = null;
 ConVar gCV_dyntim_timelimit_min;
 ConVar gCV_dyntim_timelimit_max;
+ConVar gCV_dyntim_timelimit_default;
 ConVar gCV_dyntim_multiplier;
 
 bool gB_allow_roundtime_change = false;
@@ -53,6 +54,7 @@ void CreateConVars()
 
     gCV_dyntim_timelimit_min = AutoExecConfig_CreateConVar("dyntim_timelimit_min", "15", "If calculated timelimit is smaller than this, use this value instead. (Minutes)", _, true, 0.0);
     gCV_dyntim_timelimit_max = AutoExecConfig_CreateConVar("dyntim_timelimit_max", "180", "If calculated timelimit is bigger than this, use this value instead. (Minutes)", _, true, 0.0);
+    gCV_dyntim_timelimit_default = AutoExecConfig_CreateConVar("dyntim_timelimit_default", "25", "Default timelimit if there are too few runs on the server to calculate one. (Minutes)", _, true, 0.0);
     gCV_dyntim_multiplier = AutoExecConfig_CreateConVar("dyntim_multiplier", "1.0", "Multiply the resulting timelimit with this, before checking min and max values.");
 
     AutoExecConfig_ExecuteFile();
@@ -105,15 +107,16 @@ void DB_TxnSuccess_SetDynamicTimelimit(Handle db, DataPack data, int numQueries,
         return;
     }
 
-    int mapCompletions = SQL_FetchInt(results[0], 1);
-    if (mapCompletions < 5) // We dont want to base the avg time on too few times.
-    {
-        return;
-    }
-
     // Allowing the roundtime to change at this point. Without this, changes to timelimit would throw errors as not
     // gamerules etc. would have been initialized soon enough.
     gB_allow_roundtime_change = true;
+
+    int mapCompletions = SQL_FetchInt(results[0], 1);
+    if (mapCompletions < 5) // We dont want to base the avg time on too few times.
+    {
+        SetTimeLimit(gCV_dyntim_timelimit_default.IntValue);
+        return;
+    }
 
     // DB has the times in ms. We convert it to seconds.
     int averageTime = RoundToNearest(SQL_FetchInt(results[0], 0) / 1000.0);
@@ -139,9 +142,7 @@ void DB_TxnSuccess_SetDynamicTimelimit(Handle db, DataPack data, int numQueries,
     newTimeMinutes = newTimeMinutes < min ? min : newTimeMinutes;
     newTimeMinutes = newTimeMinutes > max ? max : newTimeMinutes;
 
-    char buffer[32];
-    Format(buffer, sizeof(buffer), "mp_timelimit %i", newTimeMinutes);
-    ServerCommand(buffer);
+    SetTimeLimit(newTimeMinutes);
 }
 
 // TxnFailure helper taken from GOKZ.
@@ -158,4 +159,11 @@ public void SetRoundTime(int roundTimeMinutes)
     GameRules_SetProp("m_iRoundTime", newRoundTime);
 
     FindConVar("mp_roundtime").SetInt(roundTimeMinutes);
+}
+
+public void SetTimeLimit(int timelimitMinutes)
+{
+    char timelimitBuffer[32];
+    Format(timelimitBuffer, sizeof(timelimitBuffer), "mp_timelimit %i", timelimitMinutes);
+    ServerCommand(timelimitBuffer);
 }

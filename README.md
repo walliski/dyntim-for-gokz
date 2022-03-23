@@ -15,9 +15,10 @@ then checked to be inside the configurable limits, explained below.
 
 Copy the plugin into `csgo/addons/sourcemod/plugins`. After changing map or restarting the server, there will be a
 config file generated in `csgo/cfg/sourcemod/plugins.dyntim.cfg`. In this file you can set the min and max values for
-the calculated timelimit:
+the calculated timelimit. You can also set a default timelimit in case it cannot be calculated. Note that this default
+timelimit will override other configurations you might have!
 
-```
+```conf
 // If calculated timelimit is smaller than this, use this value instead. (Minutes)
 // -
 // Default: "15"
@@ -29,6 +30,12 @@ dyntim_timelimit_min "15"
 // Default: "180"
 // Minimum: "0.000000"
 dyntim_timelimit_max "180"
+
+// Default timelimit if there are too few runs on the server to calculate one. (Minutes)
+// -
+// Default: "25"
+// Minimum: "0.000000"
+dyntim_timelimit_default "25"
 
 // Multiply the resulting timelimit with this, before checking min and max values.
 // -
