@@ -1,4 +1,5 @@
 #include <sourcemod>
+#include <sdktools>
 
 #include <gokz/core> // For getting server default mode
 #include <gokz/localdb> // For GetCurrentMapID
@@ -23,22 +24,26 @@ ConVar gCV_dyntim_timelimit_min;
 ConVar gCV_dyntim_timelimit_max;
 ConVar gCV_dyntim_multiplier;
 
+bool gB_allow_roundtime_change = false;
+
 public void OnPluginStart()
 {
     CreateConVars();
 
     // Unlock roundtime's 60 minutes upper cap.
     SetConVarBounds(FindConVar("mp_roundtime"), ConVarBound_Upper, true, gCV_dyntim_timelimit_max.FloatValue);
-
-    HookConVarChange(FindConVar("mp_timelimit"), OnTimeLimitChanged);
 }
 
-public void OnTimeLimitChanged(ConVar timeLimit, const char[] oldValue, const char[] newValue)
+public void OnMapTimeLeftChanged()
 {
-    int newRoundTime = RoundToNearest(StringToFloat(newValue) * 60);
-    GameRules_SetProp("m_iRoundTime", newRoundTime);
+    int newTimeleft = FindConVar("mp_timelimit").IntValue;
+    SetRoundTime(newTimeleft);
+}
 
-    FindConVar("mp_roundtime").SetFloat(timeLimit.FloatValue);
+public void OnMapEnd()
+{
+    // Disallow changes until we load in a new map.
+    gB_allow_roundtime_change = false;
 }
 
 void CreateConVars()
@@ -106,6 +111,10 @@ void DB_TxnSuccess_SetDynamicTimelimit(Handle db, DataPack data, int numQueries,
         return;
     }
 
+    // Allowing the roundtime to change at this point. Without this, changes to timelimit would throw errors as not
+    // gamerules etc. would have been initialized soon enough.
+    gB_allow_roundtime_change = true;
+
     // DB has the times in ms. We convert it to seconds.
     int averageTime = RoundToNearest(SQL_FetchInt(results[0], 0) / 1000.0);
 
@@ -133,15 +142,20 @@ void DB_TxnSuccess_SetDynamicTimelimit(Handle db, DataPack data, int numQueries,
     char buffer[32];
     Format(buffer, sizeof(buffer), "mp_timelimit %i", newTimeMinutes);
     ServerCommand(buffer);
-
-    Format(buffer, sizeof(buffer), "mp_roundtime %i", newTimeMinutes);
-    ServerCommand(buffer);
-
-    ServerCommand("mp_restartgame 1"); // Need to restart for Roundtime to take place.
 }
 
 // TxnFailure helper taken from GOKZ.
 public void DB_TxnFailure_Generic(Handle db, any data, int numQueries, const char[] error, int failIndex, any[] queryData)
 {
     LogError("Database transaction error: %s", error);
+}
+
+public void SetRoundTime(int roundTimeMinutes)
+{
+    if (!gB_allow_roundtime_change) return;
+
+    int newRoundTime = roundTimeMinutes * 60;
+    GameRules_SetProp("m_iRoundTime", newRoundTime);
+
+    FindConVar("mp_roundtime").SetInt(roundTimeMinutes);
 }
