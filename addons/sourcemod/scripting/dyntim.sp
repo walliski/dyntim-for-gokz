@@ -15,7 +15,7 @@ public Plugin myinfo =
     name = "DynTim for GOKZ",
     author = "Walliski",
     description = "Dynamic Timelimit based on average map completion time.",
-    version = "1.1.0",
+    version = "2.0.0",
     url = "https://github.com/walliski/dyntim-for-gokz"
 };
 

@@ -52,6 +52,11 @@ To compile this plugin, you need the following includes:
 
 ## Changelog
 
+- **2.0.0** 23.3.2022  
+  - **Breaking change:** Add default timelimit option.
+  - Allow roundtime to be bigger than 60 minutes.
+  - Change roundtime any time timelimit is changed.
+
 - **1.1.0** 8.2.2021  
   - Added multiplier cvar so you can scale the resulting timelimit, in case you feel its consistently too high or low.
   - Lowered the resulting timelimits, and made the scaling a bit smoother, for shorter maps.
@@ -61,5 +66,7 @@ To compile this plugin, you need the following includes:
 
 ## Credits
 
-The code for getting the average time is copied from the
-[GOKZ repository](https://bitbucket.org/kztimerglobalteam/gokz/src/master/).
+- The code for getting the average time is copied from the
+  [GOKZ repository](https://bitbucket.org/kztimerglobalteam/gokz/src/master/).
+- [zer0k-z's fork](https://github.com/zer0k-z/lob-dyntim/) for default timelimit, and how to set roundtime bigger than
+  60.
